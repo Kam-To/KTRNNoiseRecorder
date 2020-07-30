@@ -209,6 +209,10 @@ static void HandleInputBuffer(void *aqData, AudioQueueRef inAQ, AudioQueueBuffer
     [recoder.writer wirteData:dataToWrite size:dataSize];
 #endif
 
+    // TODO: encode pcm to aac
+    // https://developer.apple.com/library/archive/qa/qa1317/_index.html#//apple_ref/doc/uid/DTS10002349
+    // https://developer.apple.com/library/archive/samplecode/iPhoneACFileConvertTest/Introduction/Intro.html
+    
     if (st == noErr) {
         pAqData->mCurrentPacket += inNumPackets; // 实际写入的 packet 数目
     } else {
