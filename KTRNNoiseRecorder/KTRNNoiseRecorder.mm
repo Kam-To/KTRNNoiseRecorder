@@ -8,26 +8,34 @@
 #import "KTRNNoiseRecorder.h"
 #import <AVFoundation/AVFoundation.h>
 #import <AudioToolbox/AudioToolbox.h>
-#import "rnnoise.h"
+#import "KTAudioFileWriter.h"
+
+//#define OLD_WAY
 
 static const int kNumberBuffers = 3;
 struct AQRecorderState {
     AudioStreamBasicDescription mDataFormat;
     AudioQueueRef mQueue;
     AudioQueueBufferRef mBuffers[kNumberBuffers];
+#ifdef OLD_WAY
     AudioFileID mAudioFile;
-    
+#endif
     UInt32 bufferByteSize; // for each audio queue buffer,
     //This value is calculated in these examples in the DeriveBufferSize function, after the audio queue is created and before it is started.
     
     SInt64 mCurrentPacket; // The packet index for the first packet to be written from the current audio queue buffer.
     
-    DenoiseState *dst; // rnnoise
     bool mIsRunning; // A Boolean value indicating whether or not the audio queue is running.
+#ifndef OLD_WAY
+    KTRNNoiseRecorder *recorderRef;
+#endif
 };
 
 @interface KTRNNoiseRecorder()
 @property (nonatomic, assign) AQRecorderState aqData;
+#ifndef OLD_WAY
+@property (nonatomic, strong) KTAudioFileWriter *writer;
+#endif
 @end
 
 @implementation KTRNNoiseRecorder
@@ -63,8 +71,10 @@ struct AQRecorderState {
     // Frames per packet (linear PCM, for example, uses one frame per packet)
     _aqData.mDataFormat.mFramesPerPacket  = 1;
     _aqData.mDataFormat.mFormatFlags = kLinearPCMFormatFlagIsSignedInteger | kLinearPCMFormatFlagIsPacked;
+#ifndef OLD_WAY
+    _aqData.recorderRef = self;
+#endif
     
-    _aqData.dst = rnnoise_create();
     
     /// !!!: Create a Recording Audio Queue
     AudioQueueNewInput(&_aqData.mDataFormat, HandleInputBuffer, &_aqData, NULL, kCFRunLoopCommonModes, 0, &_aqData.mQueue);
@@ -73,9 +83,12 @@ struct AQRecorderState {
     UInt32 dataFormatSize = sizeof(_aqData.mDataFormat);
     AudioQueueGetProperty(_aqData.mQueue, kAudioQueueProperty_StreamDescription, &_aqData.mDataFormat, &dataFormatSize);
     
+    /// !!!: Set an Audio Queue Buffer Size
+    DeriveBufferSize(_aqData.mQueue, _aqData.mDataFormat, 0.5, &_aqData.bufferByteSize);
     
     OSStatus st = noErr;
-    
+#ifdef OLD_WAY
+
     /// !!!: Create an Audio File
     AudioFileTypeID fileType = kAudioFileWAVEType;
     CFURLRef audioFileURL = CFURLCreateFromFileSystemRepresentation(NULL, (const UInt8 *)path.UTF8String, (CFIndex)strlen(path.UTF8String), false);
@@ -83,10 +96,11 @@ struct AQRecorderState {
     /// !!!: kAudioFileFlags_DontPageAlignAudioData
     st = AudioFileCreateWithURL(audioFileURL, fileType, &_aqData.mDataFormat, // 实际上我并不想直接写 PCM
                                 kAudioFileFlags_DontPageAlignAudioData | kAudioFileFlags_EraseFile, &_aqData.mAudioFile);
-        
-    /// !!!: Set an Audio Queue Buffer Size
-    DeriveBufferSize(_aqData.mQueue, _aqData.mDataFormat, 0.5, &_aqData.bufferByteSize);
-
+#else
+    _writer = [[KTAudioFileWriter alloc] initWithPath:path foramtDes:&_aqData.mDataFormat];
+    _writer.denoise = self.denoise;
+#endif
+    
     /// !!!: Prepare a Set of Audio Queue Buffers
     for (int i = 0; i < kNumberBuffers; i++) {
         st = AudioQueueAllocateBuffer(_aqData.mQueue, _aqData.bufferByteSize, &_aqData.mBuffers[i]);
@@ -95,7 +109,7 @@ struct AQRecorderState {
         if (st != noErr) NSLog(@"error on enqueu buffer  %d, %d", st, i);
     }
     
-    SetMagicCookieForFile(_aqData.mQueue, _aqData.mAudioFile);
+//    SetMagicCookieForFile(_aqData.mQueue, _aqData.mAudioFile);
 
     /// !!!: Record Audio
     _aqData.mCurrentPacket = 0;
@@ -110,13 +124,17 @@ struct AQRecorderState {
         _aqData.mIsRunning = false;
      
         AudioQueueDispose(_aqData.mQueue, true);
-
+#ifdef OLD_WAY
         AudioFileClose(_aqData.mAudioFile);
-        
-        if (_aqData.dst) {
-            rnnoise_destroy(_aqData.dst);
-            _aqData.dst = NULL;
-        }
+#else
+        NSTimeInterval t1 = CFAbsoluteTimeGetCurrent();
+        [_writer endWrittingWithCompeletion:^{
+            NSTimeInterval t2 = CFAbsoluteTimeGetCurrent();
+            
+            printf("Delay %lf\n", t2 - t1);
+            
+        }];
+#endif
     }
 }
 
@@ -147,19 +165,19 @@ static void DeriveBufferSize(AudioQueueRef audioQueue, AudioStreamBasicDescripti
     *outBufferSize = UInt32 (numBytesForTime < maxBufferSize ? numBytesForTime : maxBufferSize);
 }
 
-static OSStatus SetMagicCookieForFile(AudioQueueRef inQueue, AudioFileID inFile) {
-    UInt32 cookieSize;
-    OSStatus st = AudioQueueGetPropertySize(inQueue, kAudioQueueProperty_MagicCookie, &cookieSize);
-    if (st == noErr) {
-        char *magicCookie = (char *)malloc(cookieSize);
-        st = AudioQueueGetProperty(inQueue, kAudioQueueProperty_MagicCookie, magicCookie, &cookieSize);
-        if (st == noErr) {
-            st = AudioFileSetProperty (inFile, kAudioFilePropertyMagicCookieData, cookieSize, magicCookie );
-        }
-        free (magicCookie);
-    }
-    return st;
-}
+//static OSStatus SetMagicCookieForFile(AudioQueueRef inQueue, AudioFileID inFile) {
+//    UInt32 cookieSize;
+//    OSStatus st = AudioQueueGetPropertySize(inQueue, kAudioQueueProperty_MagicCookie, &cookieSize);
+//    if (st == noErr) {
+//        char *magicCookie = (char *)malloc(cookieSize);
+//        st = AudioQueueGetProperty(inQueue, kAudioQueueProperty_MagicCookie, magicCookie, &cookieSize);
+//        if (st == noErr) {
+//            st = AudioFileSetProperty (inFile, kAudioFilePropertyMagicCookieData, cookieSize, magicCookie );
+//        }
+//        free (magicCookie);
+//    }
+//    return st;
+//}
 
 static void HandleInputBuffer(void *aqData, AudioQueueRef inAQ, AudioQueueBufferRef inBuffer,
                             const AudioTimeStamp *inStartTime, UInt32 inNumPackets, const AudioStreamPacketDescription *inPacketDesc) {
@@ -179,39 +197,18 @@ static void HandleInputBuffer(void *aqData, AudioQueueRef inAQ, AudioQueueBuffer
     UInt32 dataSize = inBuffer->mAudioDataByteSize;
     void *dataToWrite = inBuffer->mAudioData;
     
-    /// !!!: ⚠️⚠️⚠️⚠️⚠️  error here
-    BOOL doDeNoise = pAqData->dst && (dataSize > 0);
-    if (doDeNoise) {
-        dataToWrite = malloc(dataSize);
-        memcpy(dataToWrite, inBuffer->mAudioData, inBuffer->mAudioDataByteSize);
-        
-        static const UInt32 kFrameSize = 480;
-        float x[kFrameSize];
-        UInt32 times = dataSize / kFrameSize;
-        UInt32 remain = dataSize % kFrameSize;
-        printf("bytes %u\n", dataSize); // 500
-        printf("    |_ times %u\n", times); // 500 % 480 = 1
-        printf("    |_ remain %u\n", remain); // 500 / 480 = 20
-        
-        int8_t *cur = (int8_t *)dataToWrite;
-        for (UInt32 i = 0; i < times; i++) {
-            cur = ((int8_t *)dataToWrite + i * kFrameSize);
-            for (UInt32 j = 0; j < kFrameSize; j++) x[j] = ((short *)(cur))[j];
-            rnnoise_process_frame(pAqData->dst, x, x);
-            for (UInt32 j = 0; j < kFrameSize; j++) ((short *)(cur))[j] = x[j];
-        }
-        
-        cur = ((int8_t *)dataToWrite + times * kFrameSize);
-        for (UInt32 i = 0; i < remain; i++) x[i] = ((short *)(cur))[i];
-        rnnoise_process_frame(pAqData->dst, x, x);
-        for (UInt32 i = 0; i < remain; i++) ((short *)(cur))[i] = x[i];
-    }
         
     // 写入 mAudioData (byteSize, packet)
-    OSStatus st = AudioFileWritePackets(pAqData->mAudioFile, false, dataSize, inPacketDesc,
+    OSStatus st = noErr;
+#ifdef OLD_WAY
+    st = AudioFileWritePackets(pAqData->mAudioFile, false, dataSize, inPacketDesc,
                                         pAqData->mCurrentPacket, &inNumPackets, dataToWrite);
-    
-    if (doDeNoise) free(dataToWrite);
+    printf("writing size(%u)  packet(%u)\n", dataSize, inNumPackets);
+#else
+    KTRNNoiseRecorder *recoder = pAqData->recorderRef;
+    [recoder.writer wirteData:dataToWrite size:dataSize];
+#endif
+
     if (st == noErr) {
         pAqData->mCurrentPacket += inNumPackets; // 实际写入的 packet 数目
     } else {

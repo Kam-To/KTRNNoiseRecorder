@@ -15,6 +15,9 @@
 
 @interface ViewController ()
 @property (weak, nonatomic) IBOutlet UILabel *desLabel;
+@property (weak, nonatomic) IBOutlet UISwitch *swicher;
+@property (weak, nonatomic) IBOutlet UIButton *recordButton;
+@property (weak, nonatomic) IBOutlet UIButton *playButton;
 @property (nonatomic, strong) KTRNNoiseRecorder *recorder;
 @property (nonatomic, strong) AVAudioPlayer *player;
 @property (nonatomic, strong) NSString *filePath;
@@ -28,19 +31,21 @@
     _filePath = [NSSearchPathForDirectoriesInDomains(9, 1, 1).firstObject stringByAppendingPathComponent:@"file.wav"];
 }
 
-- (IBAction)switchAction:(id)sender {
-    printf("Not working here, currently...\n");
+- (IBAction)switchAction:(UISwitch *)sender {
+    _recorder.denoise = sender.isOn;
 }
 
 - (IBAction)recordAction:(UIButton *)sender {
     NSString *title = sender.titleLabel.text;
-    if ([title isEqualToString:@"Record"]) {
+    BOOL doRecord = [title isEqualToString:@"Record"];
+    if (doRecord) {
         [_recorder startRecordingAt:_filePath];
         [sender setTitle:@"Stop" forState:UIControlStateNormal];
     } else {
-        [sender setTitle:@"Record" forState:UIControlStateNormal];
         [_recorder endRecording];
+        [sender setTitle:@"Record" forState:UIControlStateNormal];
     }
+    [self __updateState:doRecord];
 }
 
 - (IBAction)playAction:(id)sender {
@@ -64,6 +69,11 @@
 
     _player = [[AVAudioPlayer alloc] initWithContentsOfURL:url error:&error];
     [_player play];
+}
+
+- (void)__updateState:(BOOL)isRecording {
+    _swicher.enabled = !isRecording;
+    _playButton.enabled = !isRecording;
 }
 
 static void original_demo_convert_test(const char *inputPath, const char *outputPath) {

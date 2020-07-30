@@ -10,6 +10,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface KTRNNoiseRecorder : NSObject
+@property (nonatomic, assign) BOOL denoise; // default is NO
 - (void)startRecordingAt:(NSString *)path;
 - (void)endRecording;
 @end

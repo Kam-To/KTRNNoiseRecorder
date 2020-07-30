@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		4256C74124D161C7001FC6B0 /* KTRNNoiseRecorder.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4256C74024D161C7001FC6B0 /* KTRNNoiseRecorder.mm */; };
 		4256C74524D16204001FC6B0 /* librnnoise.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4256C74424D16204001FC6B0 /* librnnoise.a */; };
+		4256C74824D169D0001FC6B0 /* KTAudioFileWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = 4256C74724D169D0001FC6B0 /* KTAudioFileWriter.m */; };
 		42D7E7FC24D15E9100E4ACA9 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 42D7E7FB24D15E9100E4ACA9 /* AppDelegate.m */; };
 		42D7E7FF24D15E9100E4ACA9 /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 42D7E7FE24D15E9100E4ACA9 /* SceneDelegate.m */; };
 		42D7E80224D15E9100E4ACA9 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 42D7E80124D15E9100E4ACA9 /* ViewController.m */; };
@@ -23,6 +24,8 @@
 		4256C74024D161C7001FC6B0 /* KTRNNoiseRecorder.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = KTRNNoiseRecorder.mm; sourceTree = "<group>"; };
 		4256C74324D16204001FC6B0 /* rnnoise.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = rnnoise.h; sourceTree = "<group>"; };
 		4256C74424D16204001FC6B0 /* librnnoise.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = librnnoise.a; sourceTree = "<group>"; };
+		4256C74624D169D0001FC6B0 /* KTAudioFileWriter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KTAudioFileWriter.h; sourceTree = "<group>"; };
+		4256C74724D169D0001FC6B0 /* KTAudioFileWriter.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = KTAudioFileWriter.m; sourceTree = "<group>"; };
 		42D7E7F724D15E9100E4ACA9 /* KTRNNoiseRecorder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KTRNNoiseRecorder.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		42D7E7FA24D15E9100E4ACA9 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		42D7E7FB24D15E9100E4ACA9 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -86,6 +89,8 @@
 				4256C74224D161F5001FC6B0 /* rnnoise-arm */,
 				4256C73F24D161C7001FC6B0 /* KTRNNoiseRecorder.h */,
 				4256C74024D161C7001FC6B0 /* KTRNNoiseRecorder.mm */,
+				4256C74624D169D0001FC6B0 /* KTAudioFileWriter.h */,
+				4256C74724D169D0001FC6B0 /* KTAudioFileWriter.m */,
 				42D7E80324D15E9100E4ACA9 /* Main.storyboard */,
 				42D7E80624D15E9300E4ACA9 /* Assets.xcassets */,
 				42D7E80824D15E9300E4ACA9 /* LaunchScreen.storyboard */,
@@ -169,6 +174,7 @@
 				42D7E7FC24D15E9100E4ACA9 /* AppDelegate.m in Sources */,
 				42D7E80D24D15E9300E4ACA9 /* main.m in Sources */,
 				42D7E7FF24D15E9100E4ACA9 /* SceneDelegate.m in Sources */,
+				4256C74824D169D0001FC6B0 /* KTAudioFileWriter.m in Sources */,
 				4256C74124D161C7001FC6B0 /* KTRNNoiseRecorder.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
