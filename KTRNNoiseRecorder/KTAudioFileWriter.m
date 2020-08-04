@@ -14,6 +14,7 @@
 @property (nonatomic, strong) dispatch_queue_t testQueue;
 @property (nonatomic, strong) NSMutableArray<NSData *> *dataArray;
 @property (nonatomic, assign) DenoiseState *dst;
+@property (nonatomic, assign) AudioStreamBasicDescription format;
 @end
 
 static const NSUInteger kFrameSize = 480;
@@ -29,6 +30,7 @@ static const NSUInteger kFrameSize = 480;
         _testQueue = dispatch_queue_create("com.audioFileWriter.aha", NULL);
         _dataArray = [NSMutableArray new];
         _dst = rnnoise_create();
+        _format = *format;
     }
     return self;
 }
@@ -69,13 +71,11 @@ static const NSUInteger kFrameSize = 480;
         NSUInteger remain = data.length % sizeToProcess;
         
         const Byte *rawData = (const Byte *)data.bytes;
-        
         float *x = NULL;
         if (_denoise) x = malloc(kFrameSize * sizeof(float));
         short *buffer = malloc(kFrameSize * sizeof(short));
         
-        /// ???:  packets ??
-        UInt32 inNumPackets = sizeToProcess;
+        UInt32 inNumPackets = sizeToProcess / self.format.mBytesPerPacket;
         
         for (UInt32 t = 0; t < times; t++) {
             memcpy(buffer, rawData + t * sizeToProcess, sizeToProcess);
@@ -96,10 +96,7 @@ static const NSUInteger kFrameSize = 480;
         if (x) free(x);
         
         NSMutableData *head = nil;
-        if (remain > 0) {
-            head = [NSMutableData dataWithBytes:(rawData + times * kFrameSize) length:remain];
-        }
-        
+        if (remain > 0) head = [NSMutableData dataWithBytes:(rawData + times * sizeToProcess) length:remain];
         if (head) {
             if (self.dataArray.count) {
                 NSData *tail = self.dataArray[0];
