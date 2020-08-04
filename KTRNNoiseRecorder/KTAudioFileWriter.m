@@ -116,9 +116,8 @@ static const NSUInteger kFrameSize = 480;
         NSData *data = self.dataArray.firstObject;
         [self.dataArray removeAllObjects];
         
-        /// !!!: ⚠️ 最后这里没写，packets 0
-        UInt32 inNumPackets = 0;
-        OSStatus st = AudioFileWritePackets(self.audioFile, false, kFrameSize, NULL, self.mCurrentPacket, &inNumPackets, data.bytes);
+        UInt32 inNumPackets = (UInt32)data.length / self.format.mBytesPerPacket;
+        OSStatus st = AudioFileWritePackets(self.audioFile, false, (UInt32)data.length, NULL, self.mCurrentPacket, &inNumPackets, data.bytes);
         if (st != noErr) printf("error on ending writing\n");
         self.mCurrentPacket += inNumPackets;
         st = AudioFileClose(self.audioFile);
