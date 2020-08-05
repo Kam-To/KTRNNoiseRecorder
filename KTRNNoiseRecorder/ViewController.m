@@ -8,12 +8,13 @@
 #import "ViewController.h"
 #import <AVFoundation/AVFoundation.h>
 #import "KTRNNoiseRecorder.h"
+#import "AudioFileConvertOperation.h"
 
 #import "rnnoise.h"
 
 #define FRAME_SIZE 480
 
-@interface ViewController ()
+@interface ViewController () <AudioFileConvertOperationDelegate>
 @property (weak, nonatomic) IBOutlet UILabel *desLabel;
 @property (weak, nonatomic) IBOutlet UISwitch *swicher;
 @property (weak, nonatomic) IBOutlet UIButton *recordButton;
@@ -21,6 +22,7 @@
 @property (nonatomic, strong) KTRNNoiseRecorder *recorder;
 @property (nonatomic, strong) AVAudioPlayer *player;
 @property (nonatomic, strong) NSString *filePath;
+@property (nonatomic, strong) AudioFileConvertOperation *op;
 @end
 
 @implementation ViewController
@@ -50,25 +52,15 @@
 
 - (IBAction)playAction:(id)sender {
 
-    NSError *error = nil;
-    NSString *processed = _filePath;
-    
-//    NSString *processed = [NSSearchPathForDirectoriesInDomains(9, 1, 1).firstObject stringByAppendingPathComponent:@"p_file.wav"];
-//    NSTimeInterval t1 = CFAbsoluteTimeGetCurrent();
-//    original_demo_convert_test(_filePath.UTF8String, processed.UTF8String);
-//    NSTimeInterval t2 = CFAbsoluteTimeGetCurrent();
-//    printf("Cost   %lf\n", t2 - t1);
-    
-    NSDictionary *fileAttributes = [[NSFileManager defaultManager] attributesOfItemAtPath:processed error:nil];
-    self.desLabel.text = fileAttributes.description;
-    
-    NSURL *url = [NSURL fileURLWithPath:processed];
-    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayAndRecord
-                                     withOptions:AVAudioSessionCategoryOptionAllowBluetooth
-                                           error:&error];
-
-    _player = [[AVAudioPlayer alloc] initWithContentsOfURL:url error:&error];
-    [_player play];
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), ^{
+        NSString *processed = [NSSearchPathForDirectoriesInDomains(9, 1, 1).firstObject stringByAppendingPathComponent:@"p_file.caf"];
+        self.op = [[AudioFileConvertOperation alloc] initWithSourceURL:[NSURL fileURLWithPath:self.filePath]
+                                                        destinationURL:[NSURL fileURLWithPath:processed]
+                                                            sampleRate:44100.0
+                                                          outputFormat:kAudioFormatMPEG4AAC];
+        self.op.delegate = self;
+        [self.op start];
+    });
 }
 
 - (void)__updateState:(BOOL)isRecording {
@@ -76,34 +68,26 @@
     _playButton.enabled = !isRecording;
 }
 
-static void original_demo_convert_test(const char *inputPath, const char *outputPath) {
-    int i;
-    float x[FRAME_SIZE];
-    FILE *f1, *fout;
-
-    DenoiseState *st = rnnoise_create();
-
-    f1 = fopen(inputPath, "r");
-    fout = fopen(outputPath, "w");
-
-    // 44bytes header of WAV file
-    Byte d[44];
-    fread(d, sizeof(Byte), sizeof(d), f1);
-    fwrite(d, sizeof(Byte), sizeof(d), fout);
-
-    while (1) {
-        short tmp[FRAME_SIZE];
-        fread(tmp, sizeof(short), FRAME_SIZE, f1);
-        if (feof(f1)) break;
-        for (i=0;i<FRAME_SIZE;i++) x[i] = tmp[i];
-        rnnoise_process_frame(st, x, x);
-        for (i=0;i<FRAME_SIZE;i++) tmp[i] = x[i];
-        fwrite(tmp, sizeof(short), FRAME_SIZE, fout);
-    }
+#pragma mark - AudioFileConvertOperationDelegate
+- (void)audioFileConvertOperation:(AudioFileConvertOperation *)audioFileConvertOperation didEncounterError:(NSError *)error {
     
-    rnnoise_destroy(st);
-    fclose(f1);
-    fclose(fout);
+}
+
+- (void)audioFileConvertOperation:(AudioFileConvertOperation *)audioFileConvertOperation didCompleteWithURL:(NSURL *)destinationURL {
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSError *error = nil;
+        NSString *processed = [NSSearchPathForDirectoriesInDomains(9, 1, 1).firstObject stringByAppendingPathComponent:@"p_file.caf"];
+        NSDictionary *fileAttributes = [[NSFileManager defaultManager] attributesOfItemAtPath:processed error:&error];
+        self.desLabel.text = fileAttributes.description;
+
+        [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayAndRecord
+                                         withOptions:AVAudioSessionCategoryOptionAllowBluetooth
+                                               error:&error];
+        
+        self.player = [[AVAudioPlayer alloc] initWithContentsOfURL:destinationURL error:&error];
+        [self.player play];
+    });
 }
 
 

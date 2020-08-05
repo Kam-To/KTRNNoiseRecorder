@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4252FFB024DAB85D00F59DB2 /* AudioFileConvertOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 4252FFAF24DAB85D00F59DB2 /* AudioFileConvertOperation.m */; };
 		4256C74124D161C7001FC6B0 /* KTRNNoiseRecorder.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4256C74024D161C7001FC6B0 /* KTRNNoiseRecorder.mm */; };
 		4256C74524D16204001FC6B0 /* librnnoise.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4256C74424D16204001FC6B0 /* librnnoise.a */; };
 		4256C74824D169D0001FC6B0 /* KTAudioFileWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = 4256C74724D169D0001FC6B0 /* KTAudioFileWriter.m */; };
@@ -20,6 +21,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		4252FFAE24DAB85D00F59DB2 /* AudioFileConvertOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioFileConvertOperation.h; sourceTree = "<group>"; };
+		4252FFAF24DAB85D00F59DB2 /* AudioFileConvertOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioFileConvertOperation.m; sourceTree = "<group>"; };
 		4256C73F24D161C7001FC6B0 /* KTRNNoiseRecorder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KTRNNoiseRecorder.h; sourceTree = "<group>"; };
 		4256C74024D161C7001FC6B0 /* KTRNNoiseRecorder.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = KTRNNoiseRecorder.mm; sourceTree = "<group>"; };
 		4256C74324D16204001FC6B0 /* rnnoise.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = rnnoise.h; sourceTree = "<group>"; };
@@ -89,6 +92,8 @@
 				4256C74224D161F5001FC6B0 /* rnnoise-arm */,
 				4256C73F24D161C7001FC6B0 /* KTRNNoiseRecorder.h */,
 				4256C74024D161C7001FC6B0 /* KTRNNoiseRecorder.mm */,
+				4252FFAE24DAB85D00F59DB2 /* AudioFileConvertOperation.h */,
+				4252FFAF24DAB85D00F59DB2 /* AudioFileConvertOperation.m */,
 				4256C74624D169D0001FC6B0 /* KTAudioFileWriter.h */,
 				4256C74724D169D0001FC6B0 /* KTAudioFileWriter.m */,
 				42D7E80324D15E9100E4ACA9 /* Main.storyboard */,
@@ -176,6 +181,7 @@
 				42D7E7FF24D15E9100E4ACA9 /* SceneDelegate.m in Sources */,
 				4256C74824D169D0001FC6B0 /* KTAudioFileWriter.m in Sources */,
 				4256C74124D161C7001FC6B0 /* KTRNNoiseRecorder.mm in Sources */,
+				4252FFB024DAB85D00F59DB2 /* AudioFileConvertOperation.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

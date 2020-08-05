@@ -48,10 +48,10 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="dul-dj-9hS">
-                                <rect key="frame" x="265" y="520" width="90" height="52"/>
+                                <rect key="frame" x="245" y="520" width="131" height="52"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="22"/>
-                                <state key="normal" title="Play"/>
+                                <state key="normal" title="Convert&amp;Play"/>
                                 <connections>
                                     <action selector="playAction:" destination="BYZ-38-t0r" eventType="touchUpInside" id="dZn-nY-VWU"/>
                                 </connections>
